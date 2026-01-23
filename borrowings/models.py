@@ -1,3 +1,10 @@
 from django.db import models
+from django.conf import settings
 
-# Create your models here.
+
+class Borrowing(models.Model):
+    borrow_date = models.DateField(auto_now_add=True)
+    expected_return_date = models.DateField()
+    actual_return_date = models.DateField(blank=True, null=True)
+    book = models.ForeignKey("Book", on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
