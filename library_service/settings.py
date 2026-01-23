@@ -122,13 +122,16 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
 }
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=3),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=4),
     "ROTATE_REFRESH_TOKENS": False,
+    # Changed on Authorize
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZE",
 }
