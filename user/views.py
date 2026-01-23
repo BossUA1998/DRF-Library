@@ -50,7 +50,7 @@ class CreateUserView(generics.GenericAPIView):
         )
 
 
-class ManageUserView(generics.RetrieveUpdateDestroyAPIView):
+class ManageUserView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
 
     def get_object(self):
