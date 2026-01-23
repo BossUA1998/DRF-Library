@@ -2,12 +2,12 @@ from django.db.models import F
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from borrowings.models import Borrowing
+from borrowings.models import Borrowing, Book
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
     book = serializers.PrimaryKeyRelatedField(
-        queryset=Borrowing.objects.filter(book__inventory__gt=0)
+        queryset=Book.objects.filter(inventory__gt=0)
     )
 
     class Meta:
@@ -35,6 +35,9 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
 class BorrowingDetailSerializer(BorrowingSerializer):
     book = serializers.SlugRelatedField(read_only=True, slug_field="title")
+
+    class Meta(BorrowingSerializer.Meta):
+        fields = BorrowingSerializer.Meta.fields + ["actual_return_date"]
 
 
 class EmptySerializer(serializers.Serializer): ...
