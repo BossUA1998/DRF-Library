@@ -1,7 +1,3 @@
-import telebot
-from dotenv import load_dotenv
-import os
-
 from django.db.models import F
 from django.db import transaction
 from django.utils import timezone
@@ -16,8 +12,6 @@ from borrowings.serializers import (
     BorrowingDetailSerializer,
     EmptySerializer,
 )
-load_dotenv()
-bot = telebot.TeleBot(os.getenv("TELEGRAM_BOT_TOKEN"))
 
 class BorrowingViewSet(
     mixins.ListModelMixin,
@@ -77,10 +71,7 @@ class BorrowingViewSet(
         serializer.save(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        print(response.data)
-        _id = request.user.telegram_id
-        if _id.isdigit():
-            bot.send_message(id, "create borrow")
-
-        return response
+        # _id = request.user.telegram_id
+        # if _id.isdigit():
+        #     bot.send_message(_id, f"Your book {Book.objects.get(pk=response.data["book"]).__str__()} has been reserved☺️")
+        return super().create(request, *args, **kwargs)
