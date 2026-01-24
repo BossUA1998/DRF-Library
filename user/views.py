@@ -1,10 +1,19 @@
-from django.contrib.auth import get_user_model
-from rest_framework import generics, mixins, status
-from rest_framework.exceptions import PermissionDenied
+# import os
+
+# import telebot
+# from dotenv import load_dotenv
+from string import ascii_letters
+from random import choices
+
+from rest_framework import generics, status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
-from user.serializers import UserSerializer, LogoutSerializer
+from user.serializers import UserSerializer, LogoutSerializer, TelegramConnectSerializer
+
+# load_dotenv()
+# bot = telebot.TeleBot(os.environ.get("TELEGRAM_BOT_TOKEN"))
 
 
 class LogoutView(generics.GenericAPIView):
@@ -55,3 +64,21 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class RegisterTelegramView(generics.GenericAPIView):
+    serializer_class = TelegramConnectSerializer
+
+    def get_object(self):
+        return "".join(choices(ascii_letters, k=10))
+
+    def get(self, request, *args, **kwargs):
+        return Response({"telegram_id": self.request.user.telegram_id}, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        key = self.get_object()
+        serializer = self.get_serializer(data={"key": key})
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response({"telegram_key": key}, status=status.HTTP_200_OK)
+        raise ValidationError

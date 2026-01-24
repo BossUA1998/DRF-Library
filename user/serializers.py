@@ -30,3 +30,15 @@ class UserSerializer(serializers.ModelSerializer):
             user.save()
 
         return user
+
+
+class TelegramConnectSerializer(serializers.Serializer):
+    key = serializers.CharField(max_length=10)
+
+    def create(self, validated_data):
+        print(validated_data)
+        user = self.context["request"].user
+        user.telegram_id = validated_data["key"]
+        user.save()
+
+        return user

@@ -39,6 +39,9 @@ class UserManager(AbstractUserManager):
 class User(AbstractUser):
     username = None
     email = models.EmailField(_("email address"), unique=True)
+    telegram_id = models.CharField(
+        _("Telegram ID"), max_length=20, null=True, blank=True
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
