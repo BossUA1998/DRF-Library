@@ -9,7 +9,7 @@ bot = TeleBot(settings.TELEGRAM_TOKEN)
 
 
 class Command(BaseCommand):
-    help = "Запуск Telegram бота"
+    help = "Run telegram bot"
 
     def handle(self, *args, **options):
         @bot.message_handler(commands=["start"])
@@ -19,7 +19,7 @@ class Command(BaseCommand):
             bot.send_message(message.chat.id, text1)
             bot.send_message(message.chat.id, text2)
 
-            print(f"COMMAND: /start | send to {message.chat.id}")
+            print(f"COMMAND: /start | send to chat {message.chat.id}")
 
         @bot.message_handler()
         def connect(message):
@@ -28,7 +28,7 @@ class Command(BaseCommand):
             if len(key) == 10:
                 try:
                     telegram_user = user.objects.get(telegram_id=key)
-                    telegram_user.telegram_id = message.chat.id
+                    telegram_user.telegram_id = message.from_user.id
                     telegram_user.save()
                 except user.DoesNotExist:
                     bot.send_message(
@@ -45,7 +45,7 @@ class Command(BaseCommand):
                     )
             else:
                 bot.send_message(
-                    message.chat.id, "This is not a key, it is 10 characters long🙄"
+                    message.chat.id, "This is not a key, must be 10 characters🙄"
                 )
 
         bot.infinity_polling()
