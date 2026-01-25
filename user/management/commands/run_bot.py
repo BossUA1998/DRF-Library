@@ -3,9 +3,11 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from telebot import TeleBot
 
-# from django_q.tasks import async_task
-
 bot = TeleBot(settings.TELEGRAM_TOKEN)
+
+
+def borrowing_notification(chat_id: int, text: str) -> None:
+    bot.send_message(chat_id=chat_id, text=text)
 
 
 class Command(BaseCommand):
@@ -15,9 +17,9 @@ class Command(BaseCommand):
         @bot.message_handler(commands=["start"])
         def main(message):
             text1 = "Hello, enter the keyword to connect🖐"
-            text2 = "To get it, follow the link -> http://127.0.0.1:8000/users/telegram/connect/"
-            bot.send_message(message.chat.id, text1)
-            bot.send_message(message.chat.id, text2)
+            text2 = "To get it, follow the link -> http://localhost:8000/users/telegram/connect/"
+            bot.send_message(chat_id=message.chat.id, text=text1)
+            bot.send_message(chat_id=message.chat.id, text=text2)
 
             print(f"COMMAND: /start | send to chat {message.chat.id}")
 
@@ -32,20 +34,24 @@ class Command(BaseCommand):
                     telegram_user.save()
                 except user.DoesNotExist:
                     bot.send_message(
-                        message.chat.id, "The key is not yours or it does not exist🥺"
+                        chat_id=message.chat.id,
+                        text="The key is not yours or it does not exist🥺",
                     )
                 except Exception as e:
                     print(type(e), e)
                     bot.send_message(
-                        message.chat.id, "Oops, there's an error on our server😞"
+                        chat_id=message.chat.id,
+                        text="Oops, there's an error on our server😞",
                     )
                 else:
                     bot.send_message(
-                        message.chat.id, "Congratulations, you have been registered🤩"
+                        chat_id=message.chat.id,
+                        text="Congratulations, you have been registered🤩",
                     )
             else:
                 bot.send_message(
-                    message.chat.id, "This is not a key, must be 10 characters🙄"
+                    chat_id=message.chat.id,
+                    text="This is not a key, must be 10 characters🙄",
                 )
 
         bot.infinity_polling()

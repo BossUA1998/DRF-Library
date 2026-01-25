@@ -1,6 +1,11 @@
+from datetime import datetime
+
+from django_q.tasks import async_task
+
 from django.db.models import F
 from django.db import transaction
 from django.utils import timezone
+from django.utils.dateformat import format as django_format
 
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
@@ -12,6 +17,9 @@ from borrowings.serializers import (
     BorrowingDetailSerializer,
     EmptySerializer,
 )
+
+from library.models import Book
+
 
 class BorrowingViewSet(
     mixins.ListModelMixin,
@@ -71,7 +79,17 @@ class BorrowingViewSet(
         serializer.save(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        # _id = request.user.telegram_id
-        # if _id.isdigit():
-        #     bot.send_message(_id, f"Your book {Book.objects.get(pk=response.data["book"]).__str__()} has been reserved☺️")
-        return super().create(request, *args, **kwargs)
+        response = super().create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            if (chat_id := request.user.telegram_id).isdigit():
+                func_location = (
+                    "user.management.commands.run_bot.borrowing_notification"
+                )
+                async_task(
+                    func=func_location,
+                    chat_id=chat_id,
+                    text=f"Your book {Book.objects.get(pk=response.data["book"]).__str__()} has been reserved☺️\n"
+                    f"You must return it on "
+                    f"{django_format(datetime.strptime("01.12.25", "%d.%m.%y"), 'j E Y')}",
+                )
+        return response
