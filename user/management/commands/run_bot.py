@@ -27,7 +27,7 @@ class Command(BaseCommand):
         def connect(message):
             key = message.json["text"]
             user = get_user_model()
-            if len(key) == 10:
+            if len(key) == 10 and key.isalpha():
                 try:
                     telegram_user = user.objects.get(telegram_id=key)
                     telegram_user.telegram_id = message.from_user.id

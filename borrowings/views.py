@@ -20,6 +20,8 @@ from borrowings.serializers import (
 
 from library.models import Book
 
+FUNC_LOCATION = "user.management.commands.run_bot.borrowing_notification"
+
 
 class BorrowingViewSet(
     mixins.ListModelMixin,
@@ -66,13 +68,21 @@ class BorrowingViewSet(
             obj.actual_return_date = timezone.now().date()
             obj.save(update_fields=["actual_return_date"])
 
-        return Response({"status": "returned"}, status=status.HTTP_200_OK)
+        response = Response({"status": "returned"}, status=status.HTTP_200_OK)
+        if (chat_id := request.user.telegram_id).isdigit():
+            async_task(
+                func=FUNC_LOCATION,
+                chat_id=chat_id,
+                text=f"The return of the book {self.get_object().book.__str__()} was recorded🤗",
+            )
+
+        return response
 
     def get_serializer_class(self):
         if self.action == "list":
             return BorrowingDetailSerializer
         if self.action == "borrowing_return":
-            return BorrowingReturnSerializer
+            return EmptySerializer
         return BorrowingSerializer
 
     def perform_create(self, serializer):
@@ -82,13 +92,10 @@ class BorrowingViewSet(
         response = super().create(request, *args, **kwargs)
         if response.status_code == status.HTTP_201_CREATED:
             if (chat_id := request.user.telegram_id).isdigit():
-                func_location = (
-                    "user.management.commands.run_bot.borrowing_notification"
-                )
                 async_task(
-                    func=func_location,
+                    func=FUNC_LOCATION,
                     chat_id=chat_id,
-                    text=f"Your book {Book.objects.get(pk=response.data["book"]).__str__()} has been reserved☺️\n"
+                    text=f"Your book {self.get_object().book.__str__()} has been reserved☺️\n"
                     f"You must return it on "
                     f"{django_format(datetime.strptime("01.12.25", "%d.%m.%y"), 'j E Y')}",
                 )
