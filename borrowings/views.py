@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django_q.tasks import async_task
 
 from django.db.models import F
@@ -17,8 +15,6 @@ from borrowings.serializers import (
     BorrowingDetailSerializer,
     EmptySerializer,
 )
-
-from library.models import Book
 
 FUNC_LOCATION = "user.management.commands.run_bot.borrowing_notification"
 
@@ -50,9 +46,6 @@ class BorrowingViewSet(
             else queryset.filter(user=self.request.user)
         )
 
-    def get_object(self):
-        return self.queryset.get(pk=self.kwargs["pk"], user=self.request.user)
-
     @action(
         methods=["POST"],
         detail=True,
@@ -61,19 +54,27 @@ class BorrowingViewSet(
     def borrowing_return(self, request, *args, **kwargs):
         obj = self.get_object()
 
-        with transaction.atomic():
-            obj.book.inventory = F("inventory") + 1
-            obj.book.save(update_fields=["inventory"])
+        if not obj.actual_return_date:
+            with transaction.atomic():
+                obj.book.inventory = F("inventory") + 1
+                obj.book.save(update_fields=["inventory"])
 
-            obj.actual_return_date = timezone.now().date()
-            obj.save(update_fields=["actual_return_date"])
+                obj.actual_return_date = timezone.now().date()
+                obj.save(update_fields=["actual_return_date"])
 
-        response = Response({"status": "returned"}, status=status.HTTP_200_OK)
-        if (chat_id := request.user.telegram_id).isdigit():
-            async_task(
-                func=FUNC_LOCATION,
-                chat_id=chat_id,
-                text=f"The return of the book {self.get_object().book.__str__()} was recorded🤗",
+            response = Response({"status": "returned"}, status=status.HTTP_200_OK)
+
+            if (chat_id := request.user.telegram_id).isdigit():
+                async_task(
+                    func=FUNC_LOCATION,
+                    chat_id=chat_id,
+                    text=f"The return of the book {self.get_object().book.__str__()} was recorded🤗",
+                )
+
+        else:
+            response = Response(
+                {"status": "You have already given away this book."},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         return response
@@ -86,17 +87,14 @@ class BorrowingViewSet(
         return BorrowingSerializer
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        instance = serializer.save(user=self.request.user)
 
-    def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
-        if response.status_code == status.HTTP_201_CREATED:
-            if (chat_id := request.user.telegram_id).isdigit():
-                async_task(
-                    func=FUNC_LOCATION,
-                    chat_id=chat_id,
-                    text=f"Your book {self.get_object().book.__str__()} has been reserved☺️\n"
-                    f"You must return it on "
-                    f"{django_format(datetime.strptime("01.12.25", "%d.%m.%y"), 'j E Y')}",
-                )
-        return response
+        user = self.request.user
+        if (chat_id := user.telegram_id) and user.telegram_id.isdigit():
+            async_task(
+                func=FUNC_LOCATION,
+                chat_id=chat_id,
+                text=f"Your book {instance.book.__str__()} has been reserved☺️\n"
+                f"You must return it on "
+                f"{django_format(instance.expected_return_date, 'j E Y')}",
+            )

@@ -67,13 +67,13 @@ class RegisterTelegramView(generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         _id = self.request.user.telegram_id
-        return Response({"telegram_id": _id if _id.isdigit() else None}, status=status.HTTP_200_OK)
+        return Response({"telegram_id": _id if _id and _id.isdigit() else None}, status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
         key = self.get_object()
         user_key = request.user.telegram_id
         serializer = self.get_serializer(data={"key": key})
-        if serializer.is_valid() and not user_key.isdigit():
+        if serializer.is_valid() and not (user_key and user_key.isdigit()):
             serializer.save(user=request.user)
             return Response({"telegram_key": key}, status=status.HTTP_200_OK)
         return Response({"detail": "You are already registered"}, status=status.HTTP_403_FORBIDDEN)

@@ -1,13 +1,34 @@
 from django.contrib.auth import get_user_model
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.db.models import Q
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from telebot import TeleBot
+from django_q.tasks import schedule
+from time import sleep
+from borrowings.models import Borrowing
 
 bot = TeleBot(settings.TELEGRAM_TOKEN)
 
 
 def borrowing_notification(chat_id: int, text: str) -> None:
     bot.send_message(chat_id=chat_id, text=text)
+
+
+def notification_for_telegram_ids():
+    borrowings = (
+        Borrowing.objects.values("user__telegram_id")
+        .filter(user__telegram_id__regex=r"^\d+$")
+        .annotate(
+            book_list=ArrayAgg("book__title", filter=Q(actual_return_date__isnull=True))
+        )
+    )
+    for borrowing in borrowings:
+        borrowing_notification(
+            chat_id=borrowing["user__telegram_id"],
+            text=f"You have {len(borrowing["book_list"])} books that need to be handed over🥲\n{",".join(borrowing["book_list"])}",
+        )
+        sleep(0.1)
 
 
 class Command(BaseCommand):

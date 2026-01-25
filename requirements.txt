@@ -5,3 +5,6 @@ pyTelegramBotAPI
 python-dotenv
 redis
 django-q2
+psycopg
+psycopg-binary
+croniter
