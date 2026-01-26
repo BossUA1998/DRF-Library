@@ -89,6 +89,11 @@ class BorrowingViewSet(
     def perform_create(self, serializer):
         instance = serializer.save(user=self.request.user)
 
+        async_task(
+            func="borrowings.tasks.create_stripe_session",
+            borrowing=instance, # borrowing
+        )
+
         user = self.request.user
         if (chat_id := user.telegram_id) and user.telegram_id.isdigit():
             async_task(
