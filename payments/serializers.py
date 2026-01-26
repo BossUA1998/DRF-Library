@@ -11,11 +11,10 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
             "status",
             "type",
             "session_url",
-            "session_id",
             "money_to_pay",
         ]
 
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta(PaymentDetailSerializer.Meta):
-        fields = PaymentDetailSerializer.Meta.fields + ["borrowing"]
+        fields = PaymentDetailSerializer.Meta.fields + ["borrowing", "session_id"]

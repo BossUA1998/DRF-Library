@@ -21,3 +21,6 @@ class Borrowing(models.Model):
         if self.expected_return_date is None:
             self.full_clean()
         return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{user.email} borrowing {self.book}"
