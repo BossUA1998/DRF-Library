@@ -3,6 +3,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from borrowings.models import Borrowing, Book
+from payments.models import Payment
+from payments.serializers import PaymentDetailSerializer
 
 
 class BorrowingSerializer(serializers.ModelSerializer):
@@ -35,9 +37,10 @@ class BorrowingSerializer(serializers.ModelSerializer):
 
 class BorrowingDetailSerializer(BorrowingSerializer):
     book = serializers.SlugRelatedField(read_only=True, slug_field="title")
+    payments = PaymentDetailSerializer(many=True, read_only=True)
 
     class Meta(BorrowingSerializer.Meta):
-        fields = BorrowingSerializer.Meta.fields + ["actual_return_date"]
+        fields = BorrowingSerializer.Meta.fields + ["actual_return_date", "payments"]
 
 
 class EmptySerializer(serializers.Serializer): ...
