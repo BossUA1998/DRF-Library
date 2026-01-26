@@ -18,5 +18,6 @@ class Borrowing(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
-        self.full_clean()
+        if self.expected_return_date is None:
+            self.full_clean()
         return super().save(*args, **kwargs)

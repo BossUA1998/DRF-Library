@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.utils import timezone
 from django.db.models import Q
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -20,14 +21,25 @@ def notification_for_telegram_ids():
         Borrowing.objects.values("user__telegram_id")
         .filter(user__telegram_id__regex=r"^\d+$")
         .annotate(
-            book_list=ArrayAgg("book__title", filter=Q(actual_return_date__isnull=True))
+            book_list=ArrayAgg(
+                "book__title",
+                filter=Q(actual_return_date__isnull=True)
+                & Q(expected_return_date__lt=timezone.now().date()),
+            )
         )
     )
     for borrowing in borrowings:
-        borrowing_notification(
-            chat_id=borrowing["user__telegram_id"],
-            text=f"You have {len(borrowing["book_list"])} books that need to be handed over🥲\n{",".join(borrowing["book_list"])}",
-        )
+        books = borrowing["book_list"]
+        if books and len(books) > 0:
+            borrowing_notification(
+                chat_id=borrowing["user__telegram_id"],
+                text=f"You have {len(books)} books that need to be handed over🥲:\n{",\n".join(books)}",
+            )
+        else:
+            borrowing_notification(
+                chat_id=borrowing["user__telegram_id"],
+                text="No borrowings overdue today!😌",
+            )
         sleep(0.1)
 
 
@@ -37,10 +49,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         @bot.message_handler(commands=["start"])
         def main(message):
-            text1 = "Hello, enter the keyword to connect🖐"
-            text2 = "To get it, follow the link -> http://localhost:8000/users/telegram/connect/"
-            bot.send_message(chat_id=message.chat.id, text=text1)
-            bot.send_message(chat_id=message.chat.id, text=text2)
+            text = (
+                "Hello, enter the keyword to connect🖐 \n"
+                "To get it, follow the link\n"
+                "http://localhost:8000/users/telegram/connect/"
+            )
+            bot.send_message(chat_id=message.chat.id, text=text)
 
             print(f"COMMAND: /start | send to chat {message.chat.id}")
 
