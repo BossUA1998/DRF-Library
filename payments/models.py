@@ -14,7 +14,7 @@ class Payment(models.Model):
 
     status = models.CharField(max_length=10, choices=StatusChoices.choices)
     type = models.CharField(max_length=10, choices=TypeChoices.choices)
-    borrowing_id = models.ForeignKey(Borrowing, on_delete=models.CASCADE)
+    borrowing = models.ForeignKey(Borrowing, on_delete=models.CASCADE)
     session_url = models.URLField(blank=True)
     session_id = models.CharField(max_length=100, blank=True)
     money_to_pay = models.DecimalField(max_digits=10, decimal_places=2)

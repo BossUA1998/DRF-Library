@@ -1,3 +1,13 @@
-from django.shortcuts import render
+from rest_framework import viewsets
+from payments.models import Payment
+from payments.serializers import PaymentSerializer
 
-# Create your views here.
+
+class PaymentViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = PaymentSerializer
+
+    def get_queryset(self):
+        queryset = Payment.objects.all()
+        if not self.request.user.is_staff:
+            queryset.filter(borrowing__user=self.request.user)
+        return queryset
