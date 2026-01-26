@@ -161,3 +161,6 @@ Q_CLUSTER = {
         "db": 0,
     },
 }
+
+STRIPE_PUBLIC_KEY = os.environ["STRIPE_PUBLIC_KEY"]
+STRIPE_PRIVATE_KEY = os.environ["STRIPE_PRIVATE_KEY"]
