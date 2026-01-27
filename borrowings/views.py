@@ -1,3 +1,4 @@
+from django.urls import reverse
 from django_q.tasks import async_task
 
 from django.db.models import F
@@ -94,7 +95,9 @@ class BorrowingViewSet(
 
         async_task(
             func="borrowings.tasks.create_stripe_session",
-            borrowing=instance,  # borrowing
+            borrowing=instance, # borrowing
+            success_url=self.request.build_absolute_uri(reverse("payments:payment_success")),
+            cancel_url=self.request.build_absolute_uri(reverse("payments:payment_cancel")),
         )
 
         user = self.request.user

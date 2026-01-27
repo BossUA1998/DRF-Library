@@ -148,8 +148,8 @@ REST_FRAMEWORK = {
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=3),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=4),
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=10),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
     "ROTATE_REFRESH_TOKENS": False,
     # Changed on Authorize
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZE",

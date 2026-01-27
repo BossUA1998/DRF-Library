@@ -8,6 +8,9 @@ class Payment(models.Model):
         PENDING = "PENDING", _("Pending")
         PAID = "PAID", _("Paid")
 
+        # my extensions
+        CANCELED = "CANCELED", _("Canceled")
+
     class TypeChoices(models.TextChoices):
         PAYMENT = "PAYMENT", _("Payment")
         FINE = "FINE", _("Fine")

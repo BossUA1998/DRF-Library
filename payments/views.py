@@ -2,6 +2,7 @@ import stripe
 
 from django.urls import reverse
 from django.conf import settings
+from django_q.tasks import async_task
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -50,4 +51,9 @@ class PaymentSuccessView(APIView):
 
 
 class PaymentCancelView(APIView):
-    def get(self, request, *args, **kwargs): ...
+    def get(self, request, *args, **kwargs):
+        async_task(
+            func="payments.tasks.schedule_cancel_payment",
+            payment_session_id=request.GET.get("session_id")
+        )
+        return Response(data={"canceled": "You will be able to pay for it within 24 hours"}, status=status.HTTP_200_OK)

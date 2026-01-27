@@ -1,11 +1,13 @@
 import stripe
 from django.conf import settings
+from django.urls import reverse
+
 from payments.models import Payment
 
 stripe.api_key = settings.STRIPE_PRIVATE_KEY
 
 
-def create_stripe_session(borrowing: "Borrowing"):
+def create_stripe_session(borrowing: "Borrowing", success_url: str, cancel_url: str):
     session = stripe.checkout.Session.create(
         payment_method_types=["card"],
         line_items=[
@@ -15,8 +17,8 @@ def create_stripe_session(borrowing: "Borrowing"):
             }
         ],
         mode="payment",
-        success_url=f"{settings.DOMAIN_NAME}/payments/success/?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{settings.DOMAIN_NAME}/payments/cancel/",
+        success_url=success_url + f"?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=cancel_url + f"?session_id={{CHECKOUT_SESSION_ID}}",
     )
 
     Payment.objects.create(
