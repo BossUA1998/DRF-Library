@@ -15,14 +15,13 @@ def create_stripe_session(borrowing: "Borrowing"):
             }
         ],
         mode="payment",
-        success_url=f"{settings.DOMAIN_NAME}/payment/success",
-        cancel_url=f"{settings.DOMAIN_NAME}/payment/cancel",
-        # metadata={}
+        success_url=f"{settings.DOMAIN_NAME}/payments/success/?session_id={{CHECKOUT_SESSION_ID}}",
+        cancel_url=f"{settings.DOMAIN_NAME}/payments/cancel/",
     )
 
     Payment.objects.create(
         status="PENDING",
-        type="PAYMENT",
+        type=session["mode"].upper(),
         borrowing=borrowing,
         session_url=session.url,
         session_id=session.id,

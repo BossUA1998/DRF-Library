@@ -10,7 +10,7 @@ class Book(models.Model):
 
     title = models.CharField(max_length=100, unique=True)
     author = models.CharField(max_length=100)
-    cover = models.CharField(max_length=10, choices=CoverChoices.choices)
+    cover = models.CharField(choices=CoverChoices.choices)
     inventory = models.PositiveIntegerField(default=0)
     daily_fee = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -19,3 +19,7 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
