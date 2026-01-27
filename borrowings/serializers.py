@@ -35,12 +35,32 @@ class BorrowingSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class BorrowingDetailSerializer(BorrowingSerializer):
+class BorrowingListSerializer(BorrowingSerializer):
     book = serializers.SlugRelatedField(read_only=True, slug_field="title")
-    payments = PaymentDetailSerializer(many=True, read_only=True)
+    payments_status = serializers.SlugRelatedField(
+        read_only=True, slug_field="status", source="payments", many=True
+    )
 
     class Meta(BorrowingSerializer.Meta):
-        fields = BorrowingSerializer.Meta.fields + ["actual_return_date", "payments"]
+        fields = BorrowingSerializer.Meta.fields + [
+            "actual_return_date",
+            "payments_status",
+        ]
+
+
+class BorrowingDetailSerializer(BorrowingListSerializer):
+    payments_status = None
+    payments = PaymentDetailSerializer(many=True, read_only=True)
+
+    class Meta(BorrowingListSerializer.Meta):
+        fields = (
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "book",
+            "actual_return_date",
+            "payments",
+        )
 
 
 class EmptySerializer(serializers.Serializer): ...

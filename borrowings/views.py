@@ -14,6 +14,7 @@ from borrowings.serializers import (
     BorrowingSerializer,
     BorrowingDetailSerializer,
     EmptySerializer,
+    BorrowingListSerializer,
 )
 
 FUNC_LOCATION = "user.management.commands.run_bot.borrowing_notification"
@@ -81,9 +82,11 @@ class BorrowingViewSet(
 
     def get_serializer_class(self):
         if self.action == "list":
-            return BorrowingDetailSerializer
-        if self.action == "borrowing_return":
+            return BorrowingListSerializer
+        elif self.action == "borrowing_return":
             return EmptySerializer
+        elif self.action == "retrieve":
+            return BorrowingDetailSerializer
         return BorrowingSerializer
 
     def perform_create(self, serializer):
@@ -91,7 +94,7 @@ class BorrowingViewSet(
 
         async_task(
             func="borrowings.tasks.create_stripe_session",
-            borrowing=instance, # borrowing
+            borrowing=instance,  # borrowing
         )
 
         user = self.request.user
