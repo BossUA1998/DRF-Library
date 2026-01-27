@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "django_q",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -61,6 +62,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+]
+
+INTERNAL_IPS = [
+    "localhost",
 ]
 
 ROOT_URLCONF = "library_service.urls"
@@ -150,7 +156,7 @@ SIMPLE_JWT = {
 }
 
 Q_CLUSTER = {
-    "name": "TelegramBot",
+    "name": "AsyncQ2Worker",
     "workers": 4,
     "recycle": 500,
     "timeout": 60,

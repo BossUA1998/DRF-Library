@@ -29,7 +29,7 @@ class BorrowingViewSet(
     queryset = Borrowing.objects
 
     def get_queryset(self):
-        queryset = self.queryset
+        queryset = self.queryset.select_related("book").prefetch_related("payments")
 
         if self.action == "list":
             user_id = self.request.query_params.get("user_id")

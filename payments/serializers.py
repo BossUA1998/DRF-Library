@@ -16,5 +16,7 @@ class PaymentDetailSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    borrowing = serializers.StringRelatedField(read_only=True)
+
     class Meta(PaymentDetailSerializer.Meta):
         fields = PaymentDetailSerializer.Meta.fields + ["borrowing", "session_id"]

@@ -23,4 +23,4 @@ class Borrowing(models.Model):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{user.email} borrowing {self.book}"
+        return f"Borrowed the book {self.book.title}"
