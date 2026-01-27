@@ -19,6 +19,7 @@ from borrowings.serializers import (
 )
 
 FUNC_LOCATION = "user.management.commands.run_bot.borrowing_notification"
+FINE_MULTIPLIER = 1.5
 
 
 class BorrowingViewSet(
@@ -64,7 +65,8 @@ class BorrowingViewSet(
                 obj.actual_return_date = timezone.now().date()
                 obj.save(update_fields=["actual_return_date"])
 
-            response = Response({"status": "returned"}, status=status.HTTP_200_OK)
+                obj.refresh_from_db()
+            data = {"status": "returned"}
 
             if (chat_id := request.user.telegram_id).isdigit():
                 async_task(
@@ -74,12 +76,23 @@ class BorrowingViewSet(
                 )
 
         else:
-            response = Response(
+            return Response(
                 {"status": "You have already given away this book."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        return response
+        if obj.actual_return_date > obj.expected_return_date:
+            async_task(
+                func="borrowings.tasks.create_fine_session",
+                fine_multiplier=FINE_MULTIPLIER,
+                borrowing=obj,
+                success_url=self.request.build_absolute_uri(reverse("payments:payment_success")),
+                cancel_url=self.request.build_absolute_uri(reverse("payments:payment_cancel")),
+            )
+
+            data["fine"] = "you need to pay a fine, the payment is in your payment list"
+
+        return Response(data=data, status=status.HTTP_200_OK)
 
     def get_serializer_class(self):
         if self.action == "list":
