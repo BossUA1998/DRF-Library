@@ -10,3 +10,4 @@ psycopg-binary
 croniter
 stripe
 django-debug-toolbar
+drf-spectacular
