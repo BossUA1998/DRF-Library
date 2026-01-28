@@ -11,3 +11,5 @@ croniter
 stripe
 django-debug-toolbar
 drf-spectacular
+whitenoise
+gunicorn
