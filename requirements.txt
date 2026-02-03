@@ -1,0 +1,15 @@
+django
+djangorestframework
+djangorestframework_simplejwt
+pyTelegramBotAPI
+python-dotenv
+redis
+django-q2
+psycopg
+psycopg-binary
+croniter
+stripe
+django-debug-toolbar
+drf-spectacular
+whitenoise
+gunicorn

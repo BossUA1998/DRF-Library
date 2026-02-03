@@ -1,0 +1,58 @@
+services:
+  redis:
+    image: redis:alpine
+    container_name: django_q_redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  postgresql_db:
+    image: postgres:alpine
+    env_file:
+      - .env
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgresql_db:/var/lib/postgresql/data
+
+  web:
+    build: .
+    command: sh -c "python manage.py migrate &&
+                    python manage.py collectstatic --noinput &&
+                    python manage.py setup_schedule &&
+                    gunicorn library_service.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/drf-library
+    ports:
+      - "8090:8000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgresql_db
+
+  bot:
+    build: .
+    command: python manage.py run_bot
+    volumes:
+      - .:/drf-library
+    env_file:
+      - .env
+    depends_on:
+      - web
+    restart: always
+
+  worker:
+    build: .
+    command: python manage.py qcluster
+    volumes:
+      - .:/drf-library
+    env_file:
+      - .env
+    depends_on:
+      - web
+      - redis
+    restart: always
+
+volumes:
+  postgresql_db:
